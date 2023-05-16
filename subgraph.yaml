@@ -1,0 +1,71 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: RequestTokenRegistry
+    network: localhost
+    source:
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      abi: RequestTokenRegistry
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/request-token-registry.ts
+      entities:
+        - RequestToken
+        - GlacierToken
+      abis:
+        - name: RequestTokenRegistry
+          file: ./abis/RequestTokenRegistry.json
+      eventHandlers:
+        - event: Registered(indexed address,string,string,uint8,indexed address)
+          handler: handleRegistered
+        - event: Unregistered(indexed address,string,string,uint8,indexed address)
+          handler: handleUnregistered
+templates:
+  - kind: ethereum
+    name: GlacierToken
+    network: localhost
+    source:
+      abi: GlacierToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/glacier-token.ts
+      entities:
+        - GlacierToken
+      abis:
+        - name: GlacierToken
+          file: ./abis/GlacierToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+
+  - kind: ethereum
+    name: RequestToken
+    network: localhost
+    source:
+      abi: RequestToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/request-token.ts
+      entities:
+        - RequestToken
+      abis:
+        - name: RequestToken
+          file: ./abis/RequestToken.json
+      eventHandlers:
+        - event: RequestAdded((uint256,uint8,address,uint256,bytes32,uint8))
+          handler: handleRequestAdded
+        - event: RequestCancelled((uint256,uint8,address,uint256,bytes32,uint8))
+          handler: handleRequestCancelled
+        - event: RequestConfirmed((uint256,uint8,address,uint256,bytes32,uint8))
+          handler: handleRequestConfirmed
+        - event: RequestRejected((uint256,uint8,address,uint256,bytes32,uint8))
+          handler: handleRequestRejected

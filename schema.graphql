@@ -1,0 +1,13 @@
+type GlacierToken @entity(immutable: true) {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+  requestToken: RequestToken
+}
+
+type RequestToken @entity {
+  id: ID!
+  active: Boolean!
+  glacierToken: GlacierToken
+}
