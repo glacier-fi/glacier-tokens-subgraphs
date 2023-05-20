@@ -2,59 +2,72 @@ import {
   assert,
   describe,
   test,
-  clearStore,
   beforeAll,
-  afterAll
-} from "matchstick-as/assembly/index"
-import { Address } from "@graphprotocol/graph-ts"
-import { OwnershipTransferred } from "../generated/schema"
-import { OwnershipTransferred as OwnershipTransferredEvent } from "../generated/RequestTokenRegistry/RequestTokenRegistry"
-import { handleOwnershipTransferred } from "../src/request-token-registry"
-import { createOwnershipTransferredEvent } from "./request-token-registry-utils"
+  clearStore,
+  afterAll,
+} from "matchstick-as/assembly/index";
+import { Address } from "@graphprotocol/graph-ts";
+
+import {
+  createRegisteredEvent,
+  createUnregisteredEvent,
+} from "./request-token-registry-utils";
+
+import {
+  handleRegistered,
+  handleUnregistered,
+} from "../src/request-token-registry";
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0
 
-describe("Describe entity assertions", () => {
+describe("Request token registry", () => {
   beforeAll(() => {
-    let previousOwner = Address.fromString(
-      "0x0000000000000000000000000000000000000001"
-    )
-    let newOwner = Address.fromString(
-      "0x0000000000000000000000000000000000000001"
-    )
-    let newOwnershipTransferredEvent = createOwnershipTransferredEvent(
-      previousOwner,
-      newOwner
-    )
-    handleOwnershipTransferred(newOwnershipTransferredEvent)
-  })
+    let newRegisteredEvent = createRegisteredEvent(
+      Address.fromString("0xB7A5bd0345EF1Cc5E66bf61BdeC17D2461fBd968"),
+      "Token Test",
+      "TTST",
+      8,
+      Address.fromString("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
+    );
 
+    handleRegistered(newRegisteredEvent);
+  });
   afterAll(() => {
-    clearStore()
-  })
+    clearStore();
+  });
 
   // For more test scenarios, see:
   // https://thegraph.com/docs/en/developer/matchstick/#write-a-unit-test
 
-  test("OwnershipTransferred created and stored", () => {
-    assert.entityCount("OwnershipTransferred", 1)
+  test("RegisteredEvent created and stored", () => {
+    assert.entityCount("RequestToken", 1);
+    assert.entityCount("GlacierToken", 1);
 
-    // 0xa16081f360e3847006db660bae1c6d1b2e17ec2a is the default address used in newMockEvent() function
     assert.fieldEquals(
-      "OwnershipTransferred",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "previousOwner",
-      "0x0000000000000000000000000000000000000001"
-    )
-    assert.fieldEquals(
-      "OwnershipTransferred",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "newOwner",
-      "0x0000000000000000000000000000000000000001"
-    )
+      "GlacierToken",
+      "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512".toLowerCase(),
+      "symbol",
+      "TTST"
+    );
+  });
 
-    // More assert options:
-    // https://thegraph.com/docs/en/developer/matchstick/#asserts
-  })
-})
+  test("UnregisteredEvent created and stored", () => {
+    let newUnregisteredEvent = createUnregisteredEvent(
+      Address.fromString("0xB7A5bd0345EF1Cc5E66bf61BdeC17D2461fBd968"),
+      "Token Test",
+      "TTST",
+      8,
+      Address.fromString("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
+    );
+    assert.entityCount("RequestToken", 1);
+    assert.entityCount("GlacierToken", 1);
+    handleUnregistered(newUnregisteredEvent);
+    assert.fieldEquals(
+      "RequestToken",
+      "0xB7A5bd0345EF1Cc5E66bf61BdeC17D2461fBd968".toLowerCase(),
+      "active",
+      "false"
+    );
+  });
+});
