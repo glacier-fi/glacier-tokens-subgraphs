@@ -3,11 +3,41 @@ type GlacierToken @entity(immutable: true) {
   name: String!
   symbol: String!
   decimals: Int!
-  requestToken: RequestToken
+  requestToken: RequestToken!
 }
 
 type RequestToken @entity {
   id: ID!
   active: Boolean!
-  glacierToken: GlacierToken
+  glacierToken: GlacierToken!
+  requests: [Request!]
+}
+
+enum RequestStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+}
+
+enum RequestType {
+  BURN
+  MINT
+}
+
+type Request @entity {
+  id: ID!
+  nonce: BigInt!
+  type: RequestType!
+  customer: Customer!
+  amount: BigInt!
+  status: RequestStatus!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  blockHash: Bytes!
+}
+
+type Customer @entity {
+  id: ID!
+  requests: [Request!]!
 }
